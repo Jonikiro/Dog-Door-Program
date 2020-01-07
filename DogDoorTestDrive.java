@@ -5,10 +5,9 @@ public class DogDoorTestDrive {
     public static void main(String[] args){
         DogDoor door = new DogDoor();
         Remote remote = new Remote(door);
+        BarkRecognizer recognizer = new BarkRecognizer(door);
         System.out.println("Fido barks to go outside.");
-        System.out.println("...but he's stuck inside!");
-        System.out.println("...so Todd grabs the remote control.");
-        remote.pressButton();
+        recognizer.recognize("bark");
         System.out.println("\nFido has gone outside...");
         System.out.println("\nFido's all done...");
 
@@ -27,14 +26,27 @@ public class DogDoorTestDrive {
 
 class DogDoor {
     private boolean open;
+    private int closingTime = 5000;
 
     public DogDoor() {
         this.open = false;
     }
 
+    public void setClosingTime(int closingTime) {
+        this.closingTime = closingTime;
+    }
+
     public void open() {
         System.out.println("The dog door opens.");
         open = true;
+
+        final Timer timer = new Timer();
+        timer.schedule(new TimerTask(){
+            public void run() {
+                close();
+                timer.cancel();
+            }
+        }, closingTime);
     }
 
     public void close() {
@@ -61,13 +73,18 @@ class Remote {
         } else {
             door.open();
         }
+    }
+}
 
-        final Timer timer = new Timer();
-        timer.schedule(new TimerTask(){
-            public void run() {
-                door.close();
-                timer.cancel();
-            }
-        }, 5000);
+class BarkRecognizer {
+    private DogDoor door;
+
+    public BarkRecognizer(DogDoor door) {
+        this.door = door;
+    }
+
+    public void recognize(String bark) {
+        System.out.println("  BarkRecognizer: Heard a \'" + bark + "\'");
+        door.open();
     }
 }
